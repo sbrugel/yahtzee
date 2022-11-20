@@ -1,18 +1,9 @@
 #include <iostream>
 #include <windows.h>
+#include "Dice.hpp"
+#include "ChipStack.hpp"
+#include "Player.hpp"
 using namespace std;
-
-struct Dice {
-    int value;
-    void roll() {
-        value = 1 + rand() % 6;
-    }
-    void printValue(HANDLE h) {
-        if (value % 2 == 0) SetConsoleTextAttribute(h, 12); // red
-        cout << value;
-        SetConsoleTextAttribute(h, 15);
-    }
-};
 
 int main()
 {
@@ -22,20 +13,12 @@ int main()
     SetConsoleTextAttribute(hConsole, 15); // set console text to white
 
     Dice d1, d2, d3, d4, d5;
-    d1.roll();
-    d2.roll();
-    d3.roll();
-    d4.roll();
-    d5.roll();
-
-    d1.printValue(hConsole);
-    cout << "\t";
-    d2.printValue(hConsole);
-    cout << "\t";
-    d3.printValue(hConsole);
-    cout << "\t";
-    d4.printValue(hConsole);
-    cout << "\t";
-    d5.printValue(hConsole);
-    cout << "\t";
+    vector<Player> players;
+    ChipStack twoPairs(5);
+    ChipStack threeOfAKind(10);
+    ChipStack smallStraight(20);
+    ChipStack flush(25);
+    ChipStack fullHouse(30);
+    ChipStack fourOfAKind(40);
+    ChipStack largeStraight(50);
 }
