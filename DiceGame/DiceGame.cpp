@@ -5,6 +5,10 @@
 #include "Player.hpp"
 using namespace std;
 
+void clearScreen() { // just so it's easier to type
+    cout << "\033[2J\033[1;1H";
+}
+
 int main()
 {
     srand(time(NULL)); // seed RNG
@@ -21,4 +25,22 @@ int main()
     ChipStack fullHouse(30);
     ChipStack fourOfAKind(40);
     ChipStack largeStraight(50);
+
+    cout << "=== Welcome to Yahtzee ===\n";
+    
+    int numPlayers = 0;
+    do {
+        cout << "How many players are playing? (1-4) > ";
+        cin >> numPlayers;
+    } while (numPlayers < 1 || numPlayers > 4);
+
+    for (int i = 0; i < numPlayers; i++) {
+        Player p;
+        players.push_back(p);
+    }
+
+    players[0].addChip(40);
+    players[0].printAllChips();
+
+    return 0;
 }

@@ -8,9 +8,13 @@ void Player::addChip(int value) {
 }
 
 void Player::printAllChips() {
-	for (int i = 0; i < chips.size(); i++) {
-		cout << chips[i] << "\t";
+	if (chips.size() == 0) cout << "No chips";
+	else {
+		for (int i = 0; i < chips.size(); i++) {
+			cout << chips[i] << "\t";
+		}
 	}
+	cout << "\n";
 }
 
 int Player::getTotalScore() {
