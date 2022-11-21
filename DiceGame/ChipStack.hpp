@@ -8,6 +8,7 @@ class ChipStack {
 public:
     ChipStack(int val);
     int removeChip();
+    int getQuantity();
 };
 
 #endif

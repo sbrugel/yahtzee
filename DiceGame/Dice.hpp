@@ -7,6 +7,7 @@ using namespace std;
 
 struct Dice {
     int value;
+    bool rollable;
     void roll();
     void printValue(HANDLE h);
 };

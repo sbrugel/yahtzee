@@ -15,3 +15,7 @@ int ChipStack::removeChip() {
 	quantity--;
 	return pointsValue;
 }
+
+int ChipStack::getQuantity() {
+	return quantity;
+}
