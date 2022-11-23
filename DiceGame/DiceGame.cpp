@@ -4,7 +4,9 @@
 #include <windows.h>
 
 #include "ChipStack.hpp"
+#include "ChipManager.hpp"
 #include "Dice.hpp"
+#include "DiceManager.hpp"
 #include "GameState.hpp"
 #include "Player.hpp"
 
@@ -20,16 +22,16 @@ void clearScreen() {
 /*
 * Prints all dice values to console. Even values printed in red.
 */
-void printAllDice(Dice d1, Dice d2, Dice d3, Dice d4, Dice d5, HANDLE hConsole) {
-    d1.printValue(hConsole);
+void printAllDice(DiceManager dman, HANDLE hConsole) {
+    dman.d1.printValue(hConsole);
     cout << "\t";
-    d2.printValue(hConsole);
+    dman.d2.printValue(hConsole);
     cout << "\t";
-    d3.printValue(hConsole);
+    dman.d3.printValue(hConsole);
     cout << "\t";
-    d4.printValue(hConsole);
+    dman.d4.printValue(hConsole);
     cout << "\t";
-    d5.printValue(hConsole);
+    dman.d5.printValue(hConsole);
     cout << "\t\n";
 }
 
@@ -68,8 +70,8 @@ int countValue(int arr[], int val, int arrlen) {
 * Based on 5 dice rolls, checks for valid scoring options (i.e. two pairs)
 */
 // TODO: move values/occurences + basically all of this code, into GameState checkValid() function after creation of DiceManager/ChipManager
-void checkDice(Dice d1, Dice d2, Dice d3, Dice d4, Dice d5) {
-    int values[] = { d1.value, d2.value, d3.value, d4.value, d5.value };
+void checkDice(DiceManager dman) {
+    int values[] = { dman.d1.value, dman.d2.value, dman.d3.value, dman.d4.value, dman.d5.value };
     int occurences[] = { 0, 0, 0, 0, 0, 0 };
     const int VALUES_LEN = 5;
     const int OCCURENCES_LEN = 6;
@@ -91,18 +93,11 @@ int main()
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);;
     SetConsoleTextAttribute(hConsole, 15); // set console text to white
 
-    Dice d1, d2, d3, d4, d5;
+    DiceManager diceMan;
+    ChipManager chipMan;
 
     vector<Player> players;
     int playerTurn = 0; // index (in players vector) of who's turn it is
-
-    ChipStack twoPairs(5);
-    ChipStack threeOfAKind(10);
-    ChipStack smallStraight(20);
-    ChipStack flush(25);
-    ChipStack fullHouse(30);
-    ChipStack fourOfAKind(40);
-    ChipStack largeStraight(50);
 
     GameState state;
 
@@ -126,24 +121,20 @@ int main()
     bool allChipsGone = false;
     do {
         clearScreen();
-        d1.rollable = true;
-        d2.rollable = true;
-        d3.rollable = true;
-        d4.rollable = true;
-        d5.rollable = true;
+        diceMan.r1 = true;
+        diceMan.r2 = true;
+        diceMan.r3 = true;
+        diceMan.r4 = true;
+        diceMan.r5 = true;
 
         cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
         system("pause");
         cout << "\nYou rolled:\n";
 
-        d1.roll();
-        d2.roll();
-        d3.roll();
-        d4.roll();
-        d5.roll();
+        diceMan.roll();
 
-        printAllDice(d1, d2, d3, d4, d5, hConsole);
-        checkDice(d1, d2, d3, d4, d5);
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan);
 
         // TODO: implemenet remaining player's turn code
         
@@ -151,10 +142,10 @@ int main()
         ++playerTurn %= numPlayers;
 
         // check if any chips are left
-        allChipsGone = twoPairs.getQuantity() == 0 && threeOfAKind.getQuantity() == 0 &&
-            smallStraight.getQuantity() == 0 && flush.getQuantity() == 0 &&
-            fullHouse.getQuantity() == 0 && fourOfAKind.getQuantity() == 0 &&
-            largeStraight.getQuantity() == 0;
+        allChipsGone = chipMan.twoPairs.getQuantity() == 0 && chipMan.threeOfAKind.getQuantity() == 0 &&
+            chipMan.smallStraight.getQuantity() == 0 && chipMan.flush.getQuantity() == 0 &&
+            chipMan.fullHouse.getQuantity() == 0 && chipMan.fourOfAKind.getQuantity() == 0 &&
+            chipMan.largeStraight.getQuantity() == 0;
 
         allChipsGone = true;
     } while (!allChipsGone);

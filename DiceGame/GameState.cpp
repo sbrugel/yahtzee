@@ -1,8 +1,13 @@
 #include <array>
 #include <iostream>
 #include "GameState.hpp"
+#include "DiceManager.hpp"
+#include "ChipManager.hpp"
 using namespace std;
 
+/*
+* Checks if "sub" is a sub-array of "parent"
+*/
 bool GameState::isSubArray(int sub[], int parent[], int sublen, int parentlen) {
     int i = 0; // sub iterator
     int j = 0; // parent iterator
@@ -23,15 +28,24 @@ bool GameState::isSubArray(int sub[], int parent[], int sublen, int parentlen) {
     return false;
 }
 
-int GameState::countValue(int arr[], int val, int arrlen) {
+/*
+* Counts occurences of an exact value in int array "arr" if "static" is true. Otherwise, counts values that are AT LEAST the target value.
+*/
+int GameState::countValue(int arr[], int val, int arrlen, bool strict) {
     int ct = 0;
     for (int i = 0; i < arrlen; i++) {
-        if (arr[i] == val) ct++;
+        if (strict) {
+            if (arr[i] == val) ct++;
+        }
+        else {
+            if (arr[i] >= val) ct++;
+        }
+            
     }
     return ct;
 }
 
-void GameState::checkValidity(int values[], int occurences[], int vlen, int olen) {
+void GameState::checkValidity(int values[], int occurences[], int vlen, int olen, DiceManager dman, ChipManager cman) {
     twoPairsValid = false;
     threeOfAKindValid = false;
     smallStraightValid = false;
@@ -71,10 +85,10 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
     
 
     // large straight
-    int validStraights[2][5] = { {1,2,3,4,5}, {2,3,4,5,6} };
-    int combinations = 2;
+    int validLStraights[2][5] = { {1,2,3,4,5}, {2,3,4,5,6} };
+    combinations = 2;
     for (int i = 0; i < combinations; i++) {
-        if (isSubArray(validStraights[i], occurences, 5, olen)) {
+        if (isSubArray(validLStraights[i], occurences, 5, olen)) {
             cout << "Large straight valid!\n";
             largeStraightValid = true;
             break;

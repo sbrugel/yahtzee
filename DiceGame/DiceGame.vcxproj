@@ -142,12 +142,15 @@
     <ClCompile Include="ChipStack.cpp" />
     <ClCompile Include="Dice.cpp" />
     <ClCompile Include="DiceGame.cpp" />
+    <ClCompile Include="DiceManager.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ChipManager.hpp" />
     <ClInclude Include="ChipStack.hpp" />
     <ClInclude Include="Dice.hpp" />
+    <ClInclude Include="DiceManager.hpp" />
     <ClInclude Include="GameState.hpp" />
     <ClInclude Include="Player.hpp" />
   </ItemGroup>
