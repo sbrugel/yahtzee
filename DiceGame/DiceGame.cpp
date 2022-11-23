@@ -70,7 +70,7 @@ int countValue(int arr[], int val, int arrlen) {
 * Based on 5 dice rolls, checks for valid scoring options (i.e. two pairs)
 */
 // TODO: move values/occurences + basically all of this code, into GameState checkValid() function after creation of DiceManager/ChipManager
-void checkDice(DiceManager dman) {
+void checkDice(DiceManager dman, ChipManager cman, GameState state) {
     int values[] = { dman.d1.value, dman.d2.value, dman.d3.value, dman.d4.value, dman.d5.value };
     int occurences[] = { 0, 0, 0, 0, 0, 0 };
     const int VALUES_LEN = 5;
@@ -83,7 +83,8 @@ void checkDice(DiceManager dman) {
     for (int i = 0; i < VALUES_LEN; i++) {
         occurences[values[i] - 1]++;
     }
-    sort(begin(occurences), end(occurences));
+
+    state.checkValidity(values, occurences, VALUES_LEN, OCCURENCES_LEN, dman, cman);
 }
 
 int main()
@@ -95,13 +96,11 @@ int main()
 
     DiceManager diceMan;
     ChipManager chipMan;
+    GameState state{};
 
-    vector<Player> players;
+    vector<Player> players; // who is playing
     int playerTurn = 0; // index (in players vector) of who's turn it is
-
-    GameState state;
-
-    int currentRoll = 1;
+    int currentRoll = 1; // what roll this player is on (1, 2, or 3)
 
     cout << "=== Welcome to Yahtzee ===\n";
     
@@ -134,7 +133,70 @@ int main()
         diceMan.roll();
 
         printAllDice(diceMan, hConsole);
-        checkDice(diceMan);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==TWO PAIRS TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 2;
+        diceMan.d3.value = 3;
+        diceMan.d4.value = 3;
+        diceMan.d5.value = 4;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==3 OF A KIND TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 2;
+        diceMan.d3.value = 2;
+        diceMan.d4.value = 3;
+        diceMan.d5.value = 4;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==SMALL STRAIGHT TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 3;
+        diceMan.d3.value = 4;
+        diceMan.d4.value = 5;
+        diceMan.d5.value = 4;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==FLUSH TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 4;
+        diceMan.d3.value = 4;
+        diceMan.d4.value = 2;
+        diceMan.d5.value = 6;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==FULL HOUSE TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 2;
+        diceMan.d3.value = 3;
+        diceMan.d4.value = 3;
+        diceMan.d5.value = 3;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==LARGE STRAIGHT TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 3;
+        diceMan.d3.value = 5;
+        diceMan.d4.value = 4;
+        diceMan.d5.value = 6;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
+
+        cout << "==YAHTZEE TESTING==\n";
+        diceMan.d1.value = 2;
+        diceMan.d2.value = 2;
+        diceMan.d3.value = 2;
+        diceMan.d4.value = 2;
+        diceMan.d5.value = 2;
+        printAllDice(diceMan, hConsole);
+        checkDice(diceMan, chipMan, state);
 
         // TODO: implemenet remaining player's turn code
         
