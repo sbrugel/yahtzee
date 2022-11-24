@@ -30,7 +30,22 @@ void printAllDice(DiceManager dman, HANDLE hConsole) {
     dman.d4.printValue(hConsole);
     cout << "\t";
     dman.d5.printValue(hConsole);
-    cout << "\t\n";
+    cout << "\t\n\n";
+}
+
+void printGameStats(vector<Player> players, ChipManager cman) {
+    cout << "SCORES:\n";
+    for (int i = 0; i < players.size(); i++) {
+        cout << "\tPLAYER " << (i + 1) << " SCORE:\t" << players[i].getTotalScore() << "\n";
+    }
+    cout << "\nCHIPS LEFT:\n";
+    cout << "\t(1) Two Pairs\t\t[quantity: " << cman.twoPairs.getQuantity() << "; value: 5]\n";
+    cout << "\t(2) Three of a Kind\t[quantity: " << cman.threeOfAKind.getQuantity() << "; value: 10]\n";
+    cout << "\t(3) Small Straight\t[quantity: " << cman.smallStraight.getQuantity() << "; value: 20]\n";
+    cout << "\t(4) Flush\t\t[quantity: " << cman.flush.getQuantity() << "; value: 25]\n";
+    cout << "\t(5) Full House\t\t[quantity: " << cman.fullHouse.getQuantity() << "; value: 30]\n";
+    cout << "\t(6) Four of a Kind\t[quantity: " << cman.fourOfAKind.getQuantity() << "; value: 40]\n";
+    cout << "\t(7) Large Straight\t[quantity: " << cman.largeStraight.getQuantity() << "; value: 50]\n\n";
 }
 
 /*
@@ -53,43 +68,118 @@ void checkDice(DiceManager dman, ChipManager cman, GameState* state) {
     state->checkValidity(values, occurences, VALUES_LEN, OCCURENCES_LEN, dman, cman);
 }
 
+/*
+* Gets user input after a roll. Returns one of the following:
+* 'a': Means user is intending to roll again (if roll is 1 or 2)
+* 'c': Means user will give up turn on roll 3, grabbing no chips
+* number: Category of chip the user is grabbing (turn ends afterwards):
+*   1 = two pairs
+*   2 = three of a kind
+*   3 = small straight
+*   4 = flush
+*   5 = full house
+*   6 = four of a kind
+*   7 = large straight
+*/
 char getInput(int roll, DiceManager dman, ChipManager cman, GameState* state) {
-    if (roll == 1 || roll == 2) {
-        // A = roll again
-        // B = pick chip (if valid)
-        cout << "is any valid? " << state->anyValid() << "\n";
-        if (state->anyValid()) {
-            cout << "Available Chips:\n";
-            if (state->twoPairsValid) {
-                cout << "\t(5) Two Pairs:\t[quantity: " << cman.twoPairs.getQuantity() << "]\n";
-            }
-            if (state->threeOfAKindValid) {
-                cout << "\t(10) Three of a Kind:\t[quantity: " << cman.threeOfAKind.getQuantity() << "]\n";
-            }
-            if (state->smallStraightValid) {
-                cout << "\t(20) Small Straight:\t[quantity: " << cman.smallStraight.getQuantity() << "]\n";
-            }
-            if (state->flushValid) {
-                cout << "\t(25) Flush:\t[quantity: " << cman.flush.getQuantity() << "]\n";
-            }
-            if (state->fullHouseValid) {
-                cout << "\t(30) Full House:\t[quantity: " << cman.fullHouse.getQuantity() << "]\n";
-            }
-            if (state->fourOfAKindValid) {
-                cout << "\t(40) Four of a Kind:\t[quantity: " << cman.fourOfAKind.getQuantity() << "]\n";
-            }
-            if (state->largeStraightValid) {
-                cout << "\t(50) Large Straight:\t[quantity: " << cman.largeStraight.getQuantity() << "]\n";
-            }
+    char choice = 'x';
+
+    if (state->anyValid()) {
+        cout << "Available chips:\n";
+        if (state->twoPairsValid) {
+            cout << "\t(1) Two Pairs\n";
         }
-        else {
-            cout << "No chips to select.\n";
+        if (state->threeOfAKindValid) {
+            cout << "\t(2) Three of a Kind\n";
+        }
+        if (state->smallStraightValid) {
+            cout << "\t(3) Small Straight\n";
+        }
+        if (state->flushValid) {
+            cout << "\t(4) Flush\n";
+        }
+        if (state->fullHouseValid) {
+            cout << "\t(5) Full House\n";
+        }
+        if (state->fourOfAKindValid) {
+            cout << "\t(6) Four of a Kind\n";
+        }
+        if (state->largeStraightValid) {
+            cout << "\t(7) Large Straight\n";
         }
     }
     else {
-
+        cout << "No chips to select.\n";
     }
-    return 'x';
+
+    if (roll == 1 || roll == 2) {
+        bool validChoice = false;
+        do {
+            choice = 'x';
+            cout << "\Available actions:\n";
+            cout << "\tA) Roll again (" << (3 - roll) << " remaining)\n";
+            if (state->anyValid()) {
+                cout << "\tB) Pick a chip from above list\n";
+            }
+            cout << "\n";
+            cin >> choice;
+            if ((choice == 'a' || choice == 'A') || ((choice == 'b' || choice == 'B') && state->anyValid())) validChoice = true;
+        } while (!validChoice);
+
+        if (choice == 'A') choice = 'a'; // lowercase for return value consistency
+    }
+    else {
+        bool validChoice = false;
+        do {
+            choice = 'x';
+            cout << "\nAvailable actions:\n";
+            if (state->anyValid()) {
+                cout << "\tB) Pick a chip from above list\n";
+            }
+            cout << "\tC) Next turn\n";
+            
+            cout << "\n";
+            cin >> choice;
+            if ((choice == 'c' || choice == 'C') || ((choice == 'b' || choice == 'B') && state->anyValid())) validChoice = true;
+        } while (!validChoice);
+
+        if (choice == 'C') choice = 'c'; // lowercase for return value consistency
+    }
+
+    if (choice == 'b' || choice == 'B' && state->anyValid()) {
+        bool validChipChoice = false;
+        do {
+            choice = 'x';
+            cout << "\nChoose a chip (enter number left of category name): ";
+            cin >> choice;
+
+            switch (choice) {
+            case '1':
+                if (state->twoPairsValid) validChipChoice = true;
+                break;
+            case '2':
+                if (state->threeOfAKindValid) validChipChoice = true;
+                break;
+            case '3':
+                if (state->smallStraightValid) validChipChoice = true;
+                break;
+            case '4':
+                if (state->flushValid) validChipChoice = true;
+                break;
+            case '5':
+                if (state->fullHouseValid) validChipChoice = true;
+                break;
+            case '6':
+                if (state->fourOfAKindValid) validChipChoice = true;
+                break;
+            case '7':
+                if (state->largeStraightValid) validChipChoice = true;
+                break;
+            }
+        } while (!validChipChoice);
+    }
+
+    return choice;
 }
 
 int main()
@@ -106,15 +196,16 @@ int main()
     vector<Player> players; // who is playing
     int playerTurn = 0; // index (in players vector) of who's turn it is
     int currentRoll = 1; // what roll this player is on (1, 2, or 3)
+    bool allChipsGone = false;
 
     cout << "=== Welcome to Yahtzee ===\n";
     
     // get players
     int numPlayers = 0;
     do {
-        cout << "How many players are playing? (1-4) > ";
+        cout << "How many players are playing? (2-4) > ";
         cin >> numPlayers;
-    } while (numPlayers < 1 || numPlayers > 4);
+    } while (numPlayers < 2 || numPlayers > 4);
 
     for (int i = 0; i < numPlayers; i++) {
         Player p;
@@ -122,28 +213,95 @@ int main()
     }
 
     // game loop
-    bool allChipsGone = false;
     do {
-        // roll 1
-        clearScreen();
+        char input;
+        currentRoll = 1;
         diceMan.r1 = true;
         diceMan.r2 = true;
         diceMan.r3 = true;
         diceMan.r4 = true;
         diceMan.r5 = true;
 
+        // roll 1
+        clearScreen();
+
         cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
+        printGameStats(players, chipMan);
+
         system("pause");
         cout << "\nYou rolled:\n";
 
         diceMan.roll();
 
         printAllDice(diceMan, hConsole);
-
         checkDice(diceMan, chipMan, state);
 
         // TODO: implemenet remaining player's turn code
-        getInput(currentRoll, diceMan, chipMan, state);
+        input = getInput(currentRoll, diceMan, chipMan, state);
+        if (input == 'a') { // player rolls again
+            currentRoll++;
+
+            clearScreen();
+
+            cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
+            printGameStats(players, chipMan);
+
+            system("pause");
+
+            cout << "\nYou rolled:\n";
+
+            diceMan.roll();
+
+            printAllDice(diceMan, hConsole);
+            checkDice(diceMan, chipMan, state);
+
+            input = getInput(currentRoll, diceMan, chipMan, state);
+            if (input == 'a') { // player rolls one more time
+                currentRoll++;
+
+                clearScreen();
+
+                cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
+                printGameStats(players, chipMan);
+
+                system("pause");
+                cout << "\nYou rolled:\n";
+
+                diceMan.roll();
+
+                printAllDice(diceMan, hConsole);
+                checkDice(diceMan, chipMan, state);
+
+                input = getInput(currentRoll, diceMan, chipMan, state);
+            }
+        }
+
+        if (input != 'c') { // in case we reach this after 3rd roll, and player cannot grab a chip
+            switch (input) {
+            case '1':
+                players[playerTurn].addChip(chipMan.twoPairs.removeChip());
+                break;
+            case '2':
+                players[playerTurn].addChip(chipMan.threeOfAKind.removeChip());
+                break;
+            case '3':
+                players[playerTurn].addChip(chipMan.smallStraight.removeChip());
+                break;
+            case '4':
+                players[playerTurn].addChip(chipMan.flush.removeChip());
+                break;
+            case '5':
+                players[playerTurn].addChip(chipMan.fullHouse.removeChip());
+                break;
+            case '6':
+                players[playerTurn].addChip(chipMan.fourOfAKind.removeChip());
+                break;
+            case '7':
+                players[playerTurn].addChip(chipMan.largeStraight.removeChip());
+                break;
+
+            }
+        }
         
         // change turn
         ++playerTurn %= numPlayers;
@@ -153,10 +311,9 @@ int main()
             chipMan.smallStraight.getQuantity() == 0 && chipMan.flush.getQuantity() == 0 &&
             chipMan.fullHouse.getQuantity() == 0 && chipMan.fourOfAKind.getQuantity() == 0 &&
             chipMan.largeStraight.getQuantity() == 0;
-
-        allChipsGone = true;
     } while (!allChipsGone);
 
+    cout << "Game complete! I'll add a proper ending soon\n";
     delete state;
 
     return 0;

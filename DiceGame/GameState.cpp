@@ -59,6 +59,7 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
     smallStraightValid = false;
     flushValid = false;
     fullHouseValid = false;
+    fourOfAKindValid = false;
     largeStraightValid = false;
     yahtzeeValid = false;
 
@@ -90,8 +91,20 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
             break;
         }
     }
+    
     if (valid) {
         flushValid = true;
+    }
+    else {
+        for (int i = 0; i < vlen; i++) {
+            if (values[i] % 2 == 0) {
+                valid = false;
+                break;
+            }
+        }
+        if (valid) {
+            flushValid = true;
+        }
     }
 
     // full house
