@@ -64,13 +64,11 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
 
     // two pairs
     if (countValue(occurences, 2, olen, false) == 2) {
-        cout << "Two pairs valid!\n";
         twoPairsValid = true;
     }
 
     // three of a kind
     if (countValue(occurences, 3, olen, false) == 1) {
-        cout << "Three of a kind valid!\n";
         threeOfAKindValid = true;
     }
 
@@ -81,7 +79,6 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
         || (occurences[1] >= 1 && occurences[2] >= 1 && occurences[3] >= 1 && occurences[4] >= 1)
         || (occurences[2] >= 1 && occurences[3] >= 1 && occurences[4] >= 1 && occurences[5] >= 1));
     if (valid) {
-        cout << "Small straight valid!\n";
         smallStraightValid = true;
     }
 
@@ -94,19 +91,16 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
         }
     }
     if (valid) {
-        cout << "Flush valid!\n";
         flushValid = true;
     }
 
     // full house
     if (countValue(occurences, 3, olen, true) == 1 && countValue(occurences, 2, olen, true) == 1) {
-        cout << "Full house valid!\n";
         fullHouseValid = true;
     }
 
     // four of a kind
     if (countValue(occurences, 4, olen, false) == 1) {
-        cout << "Four of a kind valid!\n";
         fourOfAKindValid = true;
     }
 
@@ -115,7 +109,6 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
     combinations = 2;
     for (int i = 0; i < combinations; i++) {
         if (isSubArray(validLStraights[i], values, 5, vlen)) {
-            cout << "Large straight valid!\n";
             largeStraightValid = true;
             break;
         }
@@ -123,7 +116,31 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
 
     // yahtzee
     if (countValue(occurences, 5, olen, false) == 1) {
-        cout << "Yahtzee valid!\n";
+        yahtzeeValid = true;
+
+        // also enable every other stack
+        twoPairsValid = true;
+        threeOfAKindValid = true;
+        smallStraightValid = true;
+        flushValid = true;
+        fullHouseValid = true;
+        largeStraightValid = true;
         yahtzeeValid = true;
     }
+
+    // disable chips if quantity is 0
+    if (cman.twoPairs.getQuantity() == 0) twoPairsValid = false;
+    if (cman.threeOfAKind.getQuantity() == 0) threeOfAKindValid = false;
+    if (cman.smallStraight.getQuantity() == 0) smallStraightValid = false;
+    if (cman.flush.getQuantity() == 0) flushValid = false;
+    if (cman.fullHouse.getQuantity() == 0) fullHouseValid = false;
+    if (cman.fourOfAKind.getQuantity() == 0) fourOfAKindValid = false;
+    if (cman.largeStraight.getQuantity() == 0) largeStraightValid = false;
+}
+
+/*
+* true if any scoring options are valid
+*/
+bool GameState::anyValid() {
+    return twoPairsValid || threeOfAKindValid || smallStraightValid || flushValid || fullHouseValid || fourOfAKindValid || largeStraightValid || yahtzeeValid;
 }

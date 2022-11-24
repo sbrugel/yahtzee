@@ -3,9 +3,7 @@
 #include <iostream>
 #include <windows.h>
 
-#include "ChipStack.hpp"
 #include "ChipManager.hpp"
-#include "Dice.hpp"
 #include "DiceManager.hpp"
 #include "GameState.hpp"
 #include "Player.hpp"
@@ -36,41 +34,9 @@ void printAllDice(DiceManager dman, HANDLE hConsole) {
 }
 
 /*
-* Checks if "sub" is a sub-array of "parent"
-*/
-bool isSubArray(int sub[], int parent[], int sublen, int parentlen) {
-    int i = 0; // sub iterator
-    int j = 0; // parent iterator
-
-    while (i < sublen && j < parentlen) {
-        if (sub[i] == parent[j]) {
-            i++;
-            j++;
-
-            // subarray fully traversed now?
-            if (i == sublen) return true;
-        }
-        else { // increment main array iterator; set subarray iterator to start
-            j = j - i + 1;
-            i = 0;
-        }
-    }
-    return false;
-}
-
-int countValue(int arr[], int val, int arrlen) {
-    int ct = 0;
-    for (int i = 0; i < arrlen; i++) {
-        if (arr[i] == val) ct++;
-    }
-    return ct;
-}
-
-/*
 * Based on 5 dice rolls, checks for valid scoring options (i.e. two pairs)
 */
-// TODO: move values/occurences + basically all of this code, into GameState checkValid() function after creation of DiceManager/ChipManager
-void checkDice(DiceManager dman, ChipManager cman, GameState state) {
+void checkDice(DiceManager dman, ChipManager cman, GameState* state) {
     int values[] = { dman.d1.value, dman.d2.value, dman.d3.value, dman.d4.value, dman.d5.value };
     int occurences[] = { 0, 0, 0, 0, 0, 0 };
     const int VALUES_LEN = 5;
@@ -84,7 +50,46 @@ void checkDice(DiceManager dman, ChipManager cman, GameState state) {
         occurences[values[i] - 1]++;
     }
 
-    state.checkValidity(values, occurences, VALUES_LEN, OCCURENCES_LEN, dman, cman);
+    state->checkValidity(values, occurences, VALUES_LEN, OCCURENCES_LEN, dman, cman);
+}
+
+char getInput(int roll, DiceManager dman, ChipManager cman, GameState* state) {
+    if (roll == 1 || roll == 2) {
+        // A = roll again
+        // B = pick chip (if valid)
+        cout << "is any valid? " << state->anyValid() << "\n";
+        if (state->anyValid()) {
+            cout << "Available Chips:\n";
+            if (state->twoPairsValid) {
+                cout << "\t(5) Two Pairs:\t[quantity: " << cman.twoPairs.getQuantity() << "]\n";
+            }
+            if (state->threeOfAKindValid) {
+                cout << "\t(10) Three of a Kind:\t[quantity: " << cman.threeOfAKind.getQuantity() << "]\n";
+            }
+            if (state->smallStraightValid) {
+                cout << "\t(20) Small Straight:\t[quantity: " << cman.smallStraight.getQuantity() << "]\n";
+            }
+            if (state->flushValid) {
+                cout << "\t(25) Flush:\t[quantity: " << cman.flush.getQuantity() << "]\n";
+            }
+            if (state->fullHouseValid) {
+                cout << "\t(30) Full House:\t[quantity: " << cman.fullHouse.getQuantity() << "]\n";
+            }
+            if (state->fourOfAKindValid) {
+                cout << "\t(40) Four of a Kind:\t[quantity: " << cman.fourOfAKind.getQuantity() << "]\n";
+            }
+            if (state->largeStraightValid) {
+                cout << "\t(50) Large Straight:\t[quantity: " << cman.largeStraight.getQuantity() << "]\n";
+            }
+        }
+        else {
+            cout << "No chips to select.\n";
+        }
+    }
+    else {
+
+    }
+    return 'x';
 }
 
 int main()
@@ -96,7 +101,7 @@ int main()
 
     DiceManager diceMan;
     ChipManager chipMan;
-    GameState state{};
+    GameState* state = new GameState();
 
     vector<Player> players; // who is playing
     int playerTurn = 0; // index (in players vector) of who's turn it is
@@ -119,6 +124,7 @@ int main()
     // game loop
     bool allChipsGone = false;
     do {
+        // roll 1
         clearScreen();
         diceMan.r1 = true;
         diceMan.r2 = true;
@@ -133,72 +139,11 @@ int main()
         diceMan.roll();
 
         printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
 
-        cout << "==TWO PAIRS TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 2;
-        diceMan.d3.value = 3;
-        diceMan.d4.value = 3;
-        diceMan.d5.value = 4;
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        cout << "==3 OF A KIND TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 2;
-        diceMan.d3.value = 2;
-        diceMan.d4.value = 3;
-        diceMan.d5.value = 4;
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        cout << "==SMALL STRAIGHT TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 3;
-        diceMan.d3.value = 4;
-        diceMan.d4.value = 5;
-        diceMan.d5.value = 4;
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        cout << "==FLUSH TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 4;
-        diceMan.d3.value = 4;
-        diceMan.d4.value = 2;
-        diceMan.d5.value = 6;
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        cout << "==FULL HOUSE TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 2;
-        diceMan.d3.value = 3;
-        diceMan.d4.value = 3;
-        diceMan.d5.value = 3;
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        cout << "==LARGE STRAIGHT TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 3;
-        diceMan.d3.value = 5;
-        diceMan.d4.value = 4;
-        diceMan.d5.value = 6;
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        cout << "==YAHTZEE TESTING==\n";
-        diceMan.d1.value = 2;
-        diceMan.d2.value = 2;
-        diceMan.d3.value = 2;
-        diceMan.d4.value = 2;
-        diceMan.d5.value = 2;
-        printAllDice(diceMan, hConsole);
         checkDice(diceMan, chipMan, state);
 
         // TODO: implemenet remaining player's turn code
+        getInput(currentRoll, diceMan, chipMan, state);
         
         // change turn
         ++playerTurn %= numPlayers;
@@ -211,6 +156,8 @@ int main()
 
         allChipsGone = true;
     } while (!allChipsGone);
+
+    delete state;
 
     return 0;
 }
