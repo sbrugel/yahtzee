@@ -84,27 +84,8 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
     }
 
     // flush
-    valid = true;
-    for (int i = 0; i < vlen; i++) {
-        if (values[i] % 2 != 0) {
-            valid = false;
-            break;
-        }
-    }
-    
-    if (valid) {
+    if ((occurences[0] == 0 && occurences[2] == 0 && occurences[4] == 0) || (occurences[1] == 0 && occurences[3] == 0 && occurences[5] == 0)) {
         flushValid = true;
-    }
-    else {
-        for (int i = 0; i < vlen; i++) {
-            if (values[i] % 2 == 0) {
-                valid = false;
-                break;
-            }
-        }
-        if (valid) {
-            flushValid = true;
-        }
     }
 
     // full house
