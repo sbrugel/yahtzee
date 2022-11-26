@@ -20,19 +20,22 @@ void clearScreen() {
 /*
 * Prints all dice values to console. Even values printed in red.
 */
-void printAllDice(DiceManager dman, HANDLE hConsole) {
-    dman.d1.printValue(hConsole);
+void printAllDice(DiceManager* dman, HANDLE hConsole) {
+    dman->d1.printValue(hConsole);
     cout << "\t";
-    dman.d2.printValue(hConsole);
+    dman->d2.printValue(hConsole);
     cout << "\t";
-    dman.d3.printValue(hConsole);
+    dman->d3.printValue(hConsole);
     cout << "\t";
-    dman.d4.printValue(hConsole);
+    dman->d4.printValue(hConsole);
     cout << "\t";
-    dman.d5.printValue(hConsole);
+    dman->d5.printValue(hConsole);
     cout << "\t\n\n";
 }
 
+/*
+* Prints the current scores and chips left.
+*/
 void printGameStats(vector<Player> players, ChipManager cman) {
     cout << "SCORES:\n";
     for (int i = 0; i < players.size(); i++) {
@@ -51,8 +54,8 @@ void printGameStats(vector<Player> players, ChipManager cman) {
 /*
 * Based on 5 dice rolls, checks for valid scoring options (i.e. two pairs)
 */
-void checkDice(DiceManager dman, ChipManager cman, GameState* state) {
-    int values[] = { dman.d1.value, dman.d2.value, dman.d3.value, dman.d4.value, dman.d5.value };
+void checkDice(DiceManager* dman, ChipManager cman, GameState* state) {
+    int values[] = { dman->d1.value, dman->d2.value, dman->d3.value, dman->d4.value, dman->d5.value };
     int occurences[] = { 0, 0, 0, 0, 0, 0 };
     const int VALUES_LEN = 5;
     const int OCCURENCES_LEN = 6;
@@ -65,7 +68,7 @@ void checkDice(DiceManager dman, ChipManager cman, GameState* state) {
         occurences[values[i] - 1]++;
     }
 
-    state->checkValidity(values, occurences, VALUES_LEN, OCCURENCES_LEN, dman, cman);
+    state->checkValidity(values, occurences, VALUES_LEN, OCCURENCES_LEN, cman);
 }
 
 /*
@@ -81,7 +84,7 @@ void checkDice(DiceManager dman, ChipManager cman, GameState* state) {
 *   6 = four of a kind
 *   7 = large straight
 */
-char getInput(int roll, DiceManager dman, ChipManager cman, GameState* state) {
+char getInput(int roll, GameState* state) {
     char choice = 'x';
 
     if (state->anyValid()) {
@@ -182,6 +185,26 @@ char getInput(int roll, DiceManager dman, ChipManager cman, GameState* state) {
     return choice;
 }
 
+/*
+* Play one of three rounds of a player's turn. The player will roll the dice and enter a character for input. That input gets returned from here. (See docs for getInput())
+*/
+char playRound(vector<Player> players, DiceManager* dman, ChipManager cman, GameState* state, HANDLE hConsole) {
+    clearScreen();
+
+    cout << "=== It is now Player " << (state->playerTurn) + 1 << "'s Turn ===\n";
+    printGameStats(players, cman);
+
+    system("pause");
+    cout << "\nYou rolled:\n";
+
+    dman->roll();
+
+    printAllDice(dman, hConsole);
+    checkDice(dman, cman, state);
+
+    return getInput(state->currentRoll, state);
+}
+
 int main()
 {
     srand(time(NULL)); // seed RNG
@@ -189,13 +212,11 @@ int main()
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);;
     SetConsoleTextAttribute(hConsole, 15); // set console text to white
 
-    DiceManager diceMan;
     ChipManager chipMan;
-    GameState* state = new GameState();
+    DiceManager* diceMan = new DiceManager(); // pointer; passed/modified in playRound() and other called funcs
+    GameState* state = new GameState(); // pointer; passed/modified in checkValidity()
 
     vector<Player> players; // who is playing
-    int playerTurn = 0; // index (in players vector) of who's turn it is
-    int currentRoll = 1; // what roll this player is on (1, 2, or 3)
     bool allChipsGone = false;
 
     cout << "=== Welcome to Yahtzee ===\n";
@@ -213,98 +234,61 @@ int main()
     }
 
     // game loop
+    // TODO: implemenet remaining player's turn code
     do {
         char input;
-        currentRoll = 1;
-        diceMan.r1 = true;
-        diceMan.r2 = true;
-        diceMan.r3 = true;
-        diceMan.r4 = true;
-        diceMan.r5 = true;
+        diceMan->r1 = true;
+        diceMan->r2 = true;
+        diceMan->r3 = true;
+        diceMan->r4 = true;
+        diceMan->r5 = true;
+
+        state->currentRoll = 1;
 
         // roll 1
-        clearScreen();
+        input = playRound(players, diceMan, chipMan, state, hConsole);
 
-        cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
-        printGameStats(players, chipMan);
-
-        system("pause");
-        cout << "\nYou rolled:\n";
-
-        diceMan.roll();
-
-        printAllDice(diceMan, hConsole);
-        checkDice(diceMan, chipMan, state);
-
-        // TODO: implemenet remaining player's turn code
-        input = getInput(currentRoll, diceMan, chipMan, state);
         if (input == 'a') { // player rolls again
-            currentRoll++;
+            state->currentRoll++;
 
-            clearScreen();
+            input = playRound(players, diceMan, chipMan, state, hConsole);
 
-            cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
-            printGameStats(players, chipMan);
-
-            system("pause");
-
-            cout << "\nYou rolled:\n";
-
-            diceMan.roll();
-
-            printAllDice(diceMan, hConsole);
-            checkDice(diceMan, chipMan, state);
-
-            input = getInput(currentRoll, diceMan, chipMan, state);
             if (input == 'a') { // player rolls one more time
-                currentRoll++;
+                state->currentRoll++;
 
-                clearScreen();
-
-                cout << "=== It is now Player " << playerTurn + 1 << "'s Turn ===\n";
-                printGameStats(players, chipMan);
-
-                system("pause");
-                cout << "\nYou rolled:\n";
-
-                diceMan.roll();
-
-                printAllDice(diceMan, hConsole);
-                checkDice(diceMan, chipMan, state);
-
-                input = getInput(currentRoll, diceMan, chipMan, state);
+                input = playRound(players, diceMan, chipMan, state, hConsole);
             }
         }
 
         if (input != 'c') { // in case we reach this after 3rd roll, and player cannot grab a chip
             switch (input) {
             case '1':
-                players[playerTurn].addChip(chipMan.twoPairs.removeChip());
+                players[state->playerTurn].addChip(chipMan.twoPairs.removeChip());
                 break;
             case '2':
-                players[playerTurn].addChip(chipMan.threeOfAKind.removeChip());
+                players[state->playerTurn].addChip(chipMan.threeOfAKind.removeChip());
                 break;
             case '3':
-                players[playerTurn].addChip(chipMan.smallStraight.removeChip());
+                players[state->playerTurn].addChip(chipMan.smallStraight.removeChip());
                 break;
             case '4':
-                players[playerTurn].addChip(chipMan.flush.removeChip());
+                players[state->playerTurn].addChip(chipMan.flush.removeChip());
                 break;
             case '5':
-                players[playerTurn].addChip(chipMan.fullHouse.removeChip());
+                players[state->playerTurn].addChip(chipMan.fullHouse.removeChip());
                 break;
             case '6':
-                players[playerTurn].addChip(chipMan.fourOfAKind.removeChip());
+                players[state->playerTurn].addChip(chipMan.fourOfAKind.removeChip());
                 break;
             case '7':
-                players[playerTurn].addChip(chipMan.largeStraight.removeChip());
+                players[state->playerTurn].addChip(chipMan.largeStraight.removeChip());
                 break;
-
             }
         }
         
         // change turn
-        ++playerTurn %= numPlayers;
+        state->playerTurn++;
+        state->playerTurn %= players.size();
 
         // check if any chips are left
         allChipsGone = chipMan.twoPairs.getQuantity() == 0 && chipMan.threeOfAKind.getQuantity() == 0 &&

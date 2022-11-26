@@ -10,7 +10,6 @@ class Player {
 
 public:
     void addChip(int value);
-    void printAllChips();
     int getTotalScore();
 };
 

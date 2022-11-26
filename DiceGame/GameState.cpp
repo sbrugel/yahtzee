@@ -53,7 +53,7 @@ int GameState::countValue(int arr[], int val, int arrlen, bool strict) {
 * dman = Dice manager
 * cman = Chips manager
 */
-void GameState::checkValidity(int values[], int occurences[], int vlen, int olen, DiceManager dman, ChipManager cman) {
+void GameState::checkValidity(int values[], int occurences[], int vlen, int olen, ChipManager cman) {
     twoPairsValid = false;
     threeOfAKindValid = false;
     smallStraightValid = false;
@@ -152,7 +152,7 @@ void GameState::checkValidity(int values[], int occurences[], int vlen, int olen
 }
 
 /*
-* true if any scoring options are valid
+* Returns true if any scoring options are valid
 */
 bool GameState::anyValid() {
     return twoPairsValid || threeOfAKindValid || smallStraightValid || flushValid || fullHouseValid || fourOfAKindValid || largeStraightValid || yahtzeeValid;
